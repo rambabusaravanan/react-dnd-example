@@ -1,0 +1,23 @@
+{
+  "name": "drag-and-drop",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "main": "src/index.js",
+  "dependencies": {
+    "bootstrap": "4.1.3",
+    "react": "16.4.2",
+    "react-dnd": "5.0.0",
+    "react-dnd-html5-backend": "5.0.0",
+    "react-dom": "16.4.2",
+    "react-scripts": "1.1.5",
+    "reactstrap": "6.4.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
