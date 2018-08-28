@@ -4,13 +4,13 @@ import { ItemTypes } from "./Const";
 import FormField from "./FormField";
 
 const style = {
-  height: "400px",
+  height: "200px",
   overflow: "auto",
   border: "2px solid lightgrey",
   backgroundColor: "lightgrey"
 };
 
-class Dustbin extends React.Component {
+class Canvas extends React.Component {
   render() {
     const {
       canDrop,
@@ -29,9 +29,16 @@ class Dustbin extends React.Component {
 
     let dropHint = <center>{isActive ? "Release here" : "Drag here"}</center>;
 
-    let listView = "";
+    let listView;
     if (this.props.tools.length)
-      listView = this.props.tools.map((t, i) => <FormField key={i} tool={t} />);
+      listView = this.props.tools.map((tool, i) => (
+        <FormField
+          key={tool.id}
+          index={i}
+          tool={tool}
+          moveTool={this.props.moveTool}
+        />
+      ));
 
     return connectDropTarget(
       <div style={{ ...style, borderColor }}>
@@ -61,4 +68,4 @@ function collect(connect, monitor) {
   };
 }
 
-export default DropTarget(ItemTypes.TOOL, boxTarget, collect)(Dustbin);
+export default DropTarget(ItemTypes.TOOL, boxTarget, collect)(Canvas);

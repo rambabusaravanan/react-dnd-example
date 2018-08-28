@@ -1,3 +1,4 @@
 export const ItemTypes = {
-  TOOL: "tool"
+  TOOL: "tool",
+  FIELD: "field"
 };

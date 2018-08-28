@@ -1,38 +1,55 @@
 import * as React from "react";
-import { DragDropContextProvider } from "react-dnd";
+import { DragDropContext } from "react-dnd";
 import HTML5Backend from "react-dnd-html5-backend";
-import { Container as Grid, Col, Row } from "reactstrap";
 import Canvas from "./Canvas";
 import Tool from "./Tool";
+const update = require("immutability-helper");
 
-export default class Container extends React.Component {
+class Container extends React.Component {
   state = {
     tools: []
   };
-  addItem = name => {
+  addItem = tool => {
     this.setState(state => {
-      state.tools = [...state.tools, name];
+      state.tools = [...state.tools, tool];
       return state;
     });
   };
+  moveTool = (dragIndex, hoverIndex) => {
+    const { tools } = this.state;
+    const dragCard = tools[dragIndex];
+
+    console.log(
+      dragIndex,
+      hoverIndex,
+      JSON.stringify(this.state.tools.map(t => t.id))
+    );
+    let newState = update(this.state, {
+      tools: { $splice: [[dragIndex, 1], [hoverIndex, 0, dragCard]] }
+    });
+    this.setState(newState);
+  };
   render() {
     return (
-      <DragDropContextProvider backend={HTML5Backend}>
+      <div>
         <div style={{ background: "grey" }}>
           <Tool
-            name="Text"
+            tool={{ id: 1, text: "Text" }}
             addItem={this.addItem}
             customProp="hello textTool"
           />
-          <Tool name="Heading" addItem={this.addItem} />
-          <Tool name="Button" addItem={this.addItem} />
+          <Tool tool={{ id: 2, text: "Head" }} addItem={this.addItem} />
+          <Tool tool={{ id: 3, text: "Btn" }} addItem={this.addItem} />
         </div>
         <Canvas
-          customProp="hello dustbin"
+          customProp="hello canvas"
           allowedDropEffect="move"
+          moveTool={this.moveTool}
           tools={this.state.tools}
         />
-      </DragDropContextProvider>
+      </div>
     );
   }
 }
+
+export default DragDropContext(HTML5Backend)(Container);

@@ -15,10 +15,12 @@ const style = {
 class Tool extends React.Component {
   render() {
     const { isDragging, connectDragSource } = this.props;
-    const { name } = this.props;
+    const { tool } = this.props;
     const opacity = isDragging ? 0.4 : 1;
 
-    return connectDragSource(<div style={{ ...style, opacity }}>{name}</div>);
+    return connectDragSource(
+      <div style={{ ...style, opacity }}>{tool.text}</div>
+    );
   }
 }
 
@@ -27,7 +29,8 @@ class Tool extends React.Component {
 const boxSource = {
   beginDrag(props) {
     return {
-      name: props.name
+      id: props.tool.id,
+      text: props.tool.text
     };
   },
 
@@ -44,10 +47,10 @@ const boxSource = {
       if (isDropAllowed) {
         const isCopyAction = dropResult.dropEffect === "copy";
         const actionName = isCopyAction ? "copied" : "moved";
-        alertMessage = `You "${actionName}"  "${item.name}" into "${
+        alertMessage = `You "${actionName}"  "${item.text}" into "${
           dropResult.name
         }"!`;
-        props.addItem && props.addItem(item.name);
+        props.addItem && props.addItem(item);
       } else {
         alertMessage = `You cannot "${
           dropResult.dropEffect
@@ -55,7 +58,7 @@ const boxSource = {
       }
 
       console.log(alertMessage);
-      console.log("dropResult", dropResult, "item", item);
+      console.log("dropResult:", dropResult, "item:", JSON.stringify(item));
     }
   }
 };
