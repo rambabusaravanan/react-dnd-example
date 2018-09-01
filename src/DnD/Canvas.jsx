@@ -4,13 +4,21 @@ import { ItemTypes } from "./Const";
 import FormField from "./FormField";
 
 const style = {
-  height: "200px",
+  minHeight: "50px",
   overflow: "auto",
   border: "2px solid lightgrey",
   backgroundColor: "lightgrey"
 };
 
 class Canvas extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      hasDropped: false,
+      hasDroppedOnChild: false
+    };
+  }
+
   render() {
     const {
       canDrop,
@@ -18,6 +26,7 @@ class Canvas extends React.Component {
       allowedDropEffect,
       connectDropTarget
     } = this.props;
+    const { hasDropped, hasDroppedOnChild } = this.state;
     const isActive = canDrop && isOver;
 
     let borderColor = "lightgrey";
@@ -27,11 +36,17 @@ class Canvas extends React.Component {
       borderColor = "blue";
     }
 
-    let dropHint = <center>{isActive ? "Release here" : "Drag here"}</center>;
+    let dropHint = (
+      <center>
+        {`${this.props.id}[${this.props.tools.length}] : `}
+        {isActive ? "Release here." : "Drag here."}
+        {hasDropped && " Dropped" + (hasDroppedOnChild ? "on child" : "")}
+      </center>
+    );
 
-    let listView;
+    let fieldsList;
     if (this.props.tools.length)
-      listView = this.props.tools.map((tool, i) => (
+      fieldsList = this.props.tools.map((tool, i) => (
         <FormField
           key={tool.id}
           index={i}
@@ -42,7 +57,7 @@ class Canvas extends React.Component {
 
     return connectDropTarget(
       <div style={{ ...style, borderColor }}>
-        {listView}
+        {fieldsList}
         {dropHint}
       </div>
     );
@@ -52,8 +67,21 @@ class Canvas extends React.Component {
 /* DnD */
 
 const boxTarget = {
-  drop({ allowedDropEffect }) {
+  drop({ id, allowedDropEffect, greedy }, monitor, component) {
+    if (!component) {
+      return;
+    }
+    const hasDroppedOnChild = monitor.didDrop();
+    if (hasDroppedOnChild && !greedy) {
+      return;
+    }
+    component.setState({
+      hasDropped: true,
+      hasDroppedOnChild
+    });
+
     return {
+      id,
       name: `${allowedDropEffect} Dustbin`,
       allowedDropEffect
     };
@@ -63,7 +91,8 @@ const boxTarget = {
 function collect(connect, monitor) {
   return {
     connectDropTarget: connect.dropTarget(),
-    isOver: monitor.isOver(),
+    isOver: monitor.isOver({}),
+    isOverCurrent: monitor.isOver({ shallow: true }),
     canDrop: monitor.canDrop()
   };
 }

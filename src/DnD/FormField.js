@@ -2,6 +2,7 @@ import React from "react";
 import { findDOMNode } from "react-dom";
 import { DragSource, DropTarget } from "react-dnd";
 import { ItemTypes } from "./Const";
+import Canvas from "./Canvas";
 const style = {
   borderRadius: "2px",
   padding: "4px 12px",
@@ -19,12 +20,26 @@ class FormField extends React.Component {
     } = this.props;
     const opacity = isDragging ? 0.5 : 1;
 
+    console.log("FormField's tool:", JSON.stringify(this.props.tool));
+
+    let view = (
+      <div style={{ ...style, opacity }}>
+        {tool.text}
+        {tool.text === "Layout" && (
+          <Canvas
+            id={tool.id}
+            allowedDropEffect="move"
+            moveTool={this.props.moveTool}
+            tools={tool.items}
+          />
+        )}
+      </div>
+    );
+
     return (
       connectDragSource &&
       connectDropTarget &&
-      connectDragSource(
-        connectDropTarget(<div style={{ ...style, opacity }}>{tool.text}</div>)
-      )
+      connectDragSource(connectDropTarget(view))
     );
   }
 }
@@ -81,7 +96,7 @@ const cardTarget = {
     }
 
     // Time to actually perform the action
-    props.moveTool(dragIndex, hoverIndex);
+    props.moveTool(dragIndex, hoverIndex, props.parent);
 
     // Note: we're mutating the monitor item here!
     // Generally it's better to avoid mutations,

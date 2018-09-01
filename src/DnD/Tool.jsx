@@ -29,8 +29,8 @@ class Tool extends React.Component {
 const boxSource = {
   beginDrag(props) {
     return {
-      id: props.tool.id,
-      text: props.tool.text
+      text: props.tool.text,
+      items: props.tool.items
     };
   },
 
@@ -50,7 +50,7 @@ const boxSource = {
         alertMessage = `You "${actionName}"  "${item.text}" into "${
           dropResult.name
         }"!`;
-        props.addItem && props.addItem(item);
+        props.addItem && props.addItem(item, dropResult.id);
       } else {
         alertMessage = `You cannot "${
           dropResult.dropEffect
