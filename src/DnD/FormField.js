@@ -27,10 +27,9 @@ class FormField extends React.Component {
         {tool.text}
         {tool.text === "Layout" && (
           <Canvas
-            id={tool.id}
             allowedDropEffect="move"
             moveTool={this.props.moveTool}
-            tools={tool.items}
+            tool={tool}
           />
         )}
       </div>

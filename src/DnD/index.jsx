@@ -17,46 +17,51 @@ const randomText = (length = 5) => {
 
 class Container extends React.Component {
   state = {
-    tools: []
+    tool: {
+      id: "canvas-root",
+      text: "Layout",
+      items: []
+    }
   };
   addItemRecursive = (tool, newTool, id) => {
-    console.log("o", tool.id, JSON.stringify(tool));
     if (tool.text === "Layout")
       if (tool.id === id) {
-        tool.items = [...tool.items, newTool];
+        tool = update(tool, { items: { $push: [newTool] } });
       } else {
-        for (let nestedTool of tool.items) {
-          if (nestedTool.text === "Layout")
-            nestedTool.items = this.addItemRecursive(
-              nestedTool,
-              newTool,
-              id
-            ).items;
+        for (let i = 0; i < tool.items.length; i++) {
+          let nestedTool = tool.items[i];
+          if (nestedTool.text === "Layout") {
+            let newNestedTool = this.addItemRecursive(nestedTool, newTool, id);
+            if (newNestedTool.items !== nestedTool.items)
+              tool = update(tool, {
+                items: { $splice: [[i, 1, newNestedTool]] }
+              });
+          }
         }
       }
-    console.log("n", tool.id, JSON.stringify(tool));
     return tool;
   };
-  addItem = (tool, id) => {
+  addItem = (newTool, id) => {
+    newTool.id = randomText();
     this.setState(state => {
-      tool.id = state.tools.length + randomText();
-      let rootTool = { text: "Layout", items: state.tools, id: "canvas-root" };
-      state.tools = this.addItemRecursive(rootTool, tool, id).items;
-      return JSON.parse(JSON.stringify(state));
+      state.tool = this.addItemRecursive(state.tool, newTool, id);
+      return state;
     });
   };
   moveTool = (dragIndex, hoverIndex, parent) => {
-    const { tools } = this.state;
-    const dragCard = tools[dragIndex];
+    const { tool } = this.state;
+    const dragCard = tool.items[dragIndex];
 
     console.log(
       dragIndex,
       hoverIndex,
-      JSON.stringify(this.state.tools.map(t => t.id)),
+      JSON.stringify(tool.items.map(t => t.id)),
       parent
     );
     let newState = update(this.state, {
-      tools: { $splice: [[dragIndex, 1], [hoverIndex, 0, dragCard]] }
+      tool: {
+        items: { $splice: [[dragIndex, 1], [hoverIndex, 0, dragCard]] }
+      }
     });
     this.setState(newState);
   };
@@ -70,11 +75,10 @@ class Container extends React.Component {
           <Tool tool={{ text: "Layout", items: [] }} addItem={this.addItem} />
         </div>
         <Canvas
-          id="canvas-root"
           customProp="hello canvas"
           allowedDropEffect="move"
           moveTool={this.moveTool}
-          tools={this.state.tools}
+          tool={this.state.tool}
         />
       </div>
     );

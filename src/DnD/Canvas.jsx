@@ -21,6 +21,7 @@ class Canvas extends React.Component {
 
   render() {
     const {
+      tool,
       canDrop,
       isOver,
       allowedDropEffect,
@@ -36,27 +37,26 @@ class Canvas extends React.Component {
       borderColor = "blue";
     }
 
+    let label = <center>{`${tool.id}: ${tool.items.length}`}</center>;
     let dropHint = (
       <center>
-        {`${this.props.id}[${this.props.tools.length}] : `}
         {isActive ? "Release here." : "Drag here."}
         {hasDropped && " Dropped" + (hasDroppedOnChild ? "on child" : "")}
       </center>
     );
 
-    let fieldsList;
-    if (this.props.tools.length)
-      fieldsList = this.props.tools.map((tool, i) => (
-        <FormField
-          key={tool.id}
-          index={i}
-          tool={tool}
-          moveTool={this.props.moveTool}
-        />
-      ));
+    let fieldsList = tool.items.map((nestedTool, i) => (
+      <FormField
+        key={nestedTool.id}
+        index={i}
+        tool={nestedTool}
+        moveTool={this.props.moveTool}
+      />
+    ));
 
     return connectDropTarget(
       <div style={{ ...style, borderColor }}>
+        {label}
         {fieldsList}
         {dropHint}
       </div>
@@ -67,7 +67,7 @@ class Canvas extends React.Component {
 /* DnD */
 
 const boxTarget = {
-  drop({ id, allowedDropEffect, greedy }, monitor, component) {
+  drop({ tool, allowedDropEffect, greedy }, monitor, component) {
     if (!component) {
       return;
     }
@@ -81,7 +81,7 @@ const boxTarget = {
     });
 
     return {
-      id,
+      id: tool.id,
       name: `${allowedDropEffect} Dustbin`,
       allowedDropEffect
     };
