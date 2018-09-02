@@ -7,8 +7,7 @@ const update = require("immutability-helper");
 
 const randomText = (length = 5) => {
   var text = "";
-  var possible =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   for (var i = 0; i < length; i++)
     text += possible.charAt(Math.floor(Math.random() * possible.length));
 
@@ -48,51 +47,34 @@ class Container extends React.Component {
       return state;
     });
   };
-  reorderWithin = (tool, dragIndex, hoverIndex) => {
-    const dragTool = tool.items[dragIndex];
-    return update(tool, {
-      items: { $splice: [[dragIndex, 1], [hoverIndex, 0, dragTool]] }
-    });
-  };
-  reorder = (tool, dragIndex, hoverIndex, dragParent, hoverParent) => {
-    console.log("reorder o", tool.id, JSON.stringify(tool));
-    if (dragParent === hoverParent) {
-      // same parent
-      if (dragParent === tool.id) {
-        // current layout source
-        tool = this.reorderWithin(tool, dragIndex, hoverIndex);
-      } else {
-        // nested layout source
-        for (let i = 0; i < tool.items.length; i++) {
-          let nestedTool = tool.items[i];
-          if (nestedTool.text === "Layout") {
-            let newNestedTool = this.reorder(
-              nestedTool,
-              dragIndex,
-              hoverIndex,
-              dragParent,
-              hoverParent
-            );
-            if (newNestedTool.items !== nestedTool.items)
-              tool = update(tool, {
-                items: { $splice: [[i, 1, newNestedTool]] }
-              });
-          }
+  reorder = (tool, dragIndex, hoverIndex, dragParent) => {
+    if (dragParent === tool.id) {
+      // current layout source
+      const dragTool = tool.items[dragIndex];
+      tool = update(tool, {
+        items: { $splice: [[dragIndex, 1], [hoverIndex, 0, dragTool]] }
+      });
+    } else {
+      // nested layout source
+      for (let i = 0; i < tool.items.length; i++) {
+        let nestedTool = tool.items[i];
+        if (nestedTool.text === "Layout") {
+          let newNestedTool = this.reorder(nestedTool, dragIndex, hoverIndex, dragParent);
+          if (newNestedTool.items !== nestedTool.items)
+            tool = update(tool, {
+              items: { $splice: [[i, 1, newNestedTool]] }
+            });
         }
       }
-    } else {
-      // different parent
-      console.log("moving to different parent ..");
     }
-    console.log("reorder n", tool.id, JSON.stringify(tool));
     return tool;
   };
   moveTool = (dragIndex, hoverIndex, dragParent, hoverParent) => {
-    const { tool } = this.state;
-    let newState = {
-      tool: this.reorder(tool, dragIndex, hoverIndex, dragParent, hoverParent)
-    };
-    this.setState(newState);
+    let { tool } = this.state;
+    if (dragParent === hoverParent) {
+      tool = this.reorder(tool, dragIndex, hoverIndex, dragParent);
+    }
+    this.setState({ tool });
   };
   render() {
     return (

@@ -12,12 +12,7 @@ const style = {
 
 class FormField extends React.Component {
   render() {
-    const {
-      tool,
-      isDragging,
-      connectDragSource,
-      connectDropTarget
-    } = this.props;
+    const { tool, isDragging, connectDragSource, connectDropTarget } = this.props;
     const opacity = isDragging ? 0.5 : 1;
 
     let view = (
@@ -28,23 +23,20 @@ class FormField extends React.Component {
             allowedDropEffect="move"
             moveTool={this.props.moveTool}
             tool={tool}
+            isDragging={isDragging}
           />
         )}
       </div>
     );
 
-    return (
-      connectDragSource &&
-      connectDropTarget &&
-      connectDragSource(connectDropTarget(view))
-    );
+    return connectDragSource && connectDropTarget && connectDragSource(connectDropTarget(view));
   }
 }
 
 /* DnD */
 
 const cardSource = {
-  beginDrag(props) {
+  beginDrag(props, monitor, component) {
     return {
       id: props.tool.id,
       index: props.index,
@@ -54,6 +46,9 @@ const cardSource = {
 };
 
 const cardTarget = {
+  canDrop(props) {
+    return props.parentIsDragging !== true;
+  },
   hover(props, monitor, component) {
     if (!component) {
       return null;
@@ -69,12 +64,19 @@ const cardTarget = {
       return;
     }
 
-    // Ignore if child handles hover
-    let isOverCurrent = monitor.isOver({ shallow: true });
-    if (!isOverCurrent) return null;
+    // Ignore if can't Drop
+    // Ignore hover captured by it's own children - avoiding nested droppable
+    if (!monitor.canDrop()) return;
 
     // Ignore hover captured by it's own parent instead of siblings
     if (dragParent === hoverId) return;
+
+    // Ignore if child handles hover - stop event bubbling
+    let isOverCurrent = monitor.isOver({ shallow: true });
+    if (!isOverCurrent) return null;
+
+    // Ignore other parents // temporary
+    if (dragParent !== hoverParent) return;
 
     // Determine rectangle on screen
     // const hoverBoundingRect = (findDOMNode(component) as Element).getBoundingClientRect()
@@ -115,8 +117,9 @@ const cardTarget = {
   }
 };
 
-function collectTarget(connect) {
+function collectTarget(connect, monitor) {
   return {
+    canDrop: monitor.canDrop(),
     connectDropTarget: connect.dropTarget()
   };
 }

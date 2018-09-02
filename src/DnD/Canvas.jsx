@@ -56,6 +56,7 @@ class Canvas extends React.Component {
         tool={nestedTool}
         parent={tool.id}
         moveTool={this.props.moveTool}
+        parentIsDragging={this.props.isDragging}
       />
     ));
 
