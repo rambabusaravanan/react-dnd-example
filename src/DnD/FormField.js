@@ -20,11 +20,9 @@ class FormField extends React.Component {
     } = this.props;
     const opacity = isDragging ? 0.5 : 1;
 
-    console.log("FormField's tool:", JSON.stringify(this.props.tool));
-
     let view = (
       <div style={{ ...style, opacity }}>
-        {tool.text}
+        {`${tool.text}#${tool.id} <${this.props.parent}>`}
         {tool.text === "Layout" && (
           <Canvas
             allowedDropEffect="move"
@@ -49,7 +47,8 @@ const cardSource = {
   beginDrag(props) {
     return {
       id: props.tool.id,
-      index: props.index
+      index: props.index,
+      parent: props.parent
     };
   }
 };
@@ -60,12 +59,22 @@ const cardTarget = {
       return null;
     }
     const dragIndex = monitor.getItem().index;
+    const dragParent = monitor.getItem().parent;
     const hoverIndex = props.index;
+    const hoverParent = props.parent;
+    const hoverId = props.tool.id;
 
     // Don't replace items with themselves
-    if (dragIndex === hoverIndex) {
+    if (dragIndex === hoverIndex && dragParent === hoverParent) {
       return;
     }
+
+    // Ignore if child handles hover
+    let isOverCurrent = monitor.isOver({ shallow: true });
+    if (!isOverCurrent) return null;
+
+    // Ignore hover captured by it's own parent instead of siblings
+    if (dragParent === hoverId) return;
 
     // Determine rectangle on screen
     // const hoverBoundingRect = (findDOMNode(component) as Element).getBoundingClientRect()
@@ -86,22 +95,23 @@ const cardTarget = {
 
     // Dragging downwards
     if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-      return;
+      return null;
     }
 
     // Dragging upwards
     if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-      return;
+      return null;
     }
 
     // Time to actually perform the action
-    props.moveTool(dragIndex, hoverIndex, props.parent);
+    props.moveTool(dragIndex, hoverIndex, dragParent, hoverParent);
 
     // Note: we're mutating the monitor item here!
     // Generally it's better to avoid mutations,
     // but it's good here for the sake of performance
     // to avoid expensive index searches.
     monitor.getItem().index = hoverIndex;
+    monitor.getItem().parent = hoverParent;
   }
 };
 

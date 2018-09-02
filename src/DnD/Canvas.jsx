@@ -24,15 +24,19 @@ class Canvas extends React.Component {
       tool,
       canDrop,
       isOver,
+      isOverCurrent,
       allowedDropEffect,
       connectDropTarget
     } = this.props;
     const { hasDropped, hasDroppedOnChild } = this.state;
-    const isActive = canDrop && isOver;
+    const isActive = canDrop && isOverCurrent;
+    const isActiveParent = canDrop && isOver;
 
     let borderColor = "lightgrey";
     if (isActive) {
-      borderColor = "green";
+      borderColor = "lightgreen";
+    } else if (isActiveParent) {
+      borderColor = "darkgreen";
     } else if (canDrop) {
       borderColor = "blue";
     }
@@ -41,7 +45,7 @@ class Canvas extends React.Component {
     let dropHint = (
       <center>
         {isActive ? "Release here." : "Drag here."}
-        {hasDropped && " Dropped" + (hasDroppedOnChild ? "on child" : "")}
+        {hasDropped && " Dropped" + (hasDroppedOnChild ? " on child" : "")}
       </center>
     );
 
@@ -50,6 +54,7 @@ class Canvas extends React.Component {
         key={nestedTool.id}
         index={i}
         tool={nestedTool}
+        parent={tool.id}
         moveTool={this.props.moveTool}
       />
     ));
@@ -91,7 +96,7 @@ const boxTarget = {
 function collect(connect, monitor) {
   return {
     connectDropTarget: connect.dropTarget(),
-    isOver: monitor.isOver({}),
+    isOver: monitor.isOver(),
     isOverCurrent: monitor.isOver({ shallow: true }),
     canDrop: monitor.canDrop()
   };
